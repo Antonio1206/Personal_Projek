@@ -79,40 +79,40 @@ def main():
 
 
 default_args = {
-    'owner': 'anjas', # Menunjukkan pemilik (owner) dari DAG
-    'depends_on_past': False, # Menentukan apakah tugas-tugas dalam DAG ini akan bergantung pada hasil eksekusi sebelumnya.
-    'email_on_failure': False, # Mengontrol pengiriman notifikasi email jika salah satu tugas mengalami kegagalan.
-    'email_on_retry': False, # Mengontrol pengiriman notifikasi email jika tugas dijadwalkan ulang (retry).
-    'retries': 1, # Menentukan berapa kali tugas akan mencoba dijalankan ulang jika terjadi kegagalan.
-    'retry_delay': timedelta(minutes=60), # Menentukan berapa lama (dalam satuan waktu) Apache Airflow harus menunggu sebelum mencoba menjalankan ulang tugas jika terjadi kegagalan.
+    'owner': 'anjas', 
+    'depends_on_past': False, 
+    'email_on_failure': False, 
+    'email_on_retry': False, 
+    'retries': 1, 
+    'retry_delay': timedelta(minutes=60), 
 }
 
 
 with DAG('anjas_ml3',
          description='Ini adalah DAG untuk tugas milestone',
-         default_args=default_args, # `default_args`: Parameter-parameter default untuk DAG ini telah didefinisikan sebelumnya.
-         schedule_interval='@daily', # Mengatur frekuensi eksekusi DAG. Dalam hal ini, DAG ini dijadwalkan untuk berjalan setiap hari
-         start_date=datetime(2023, 10, 30, 16, 30, 00) - timedelta(hours=7), # Menunjukkan tanggal dan waktu saat DAG akan mulai dijalankan, yaitu pada tanggal 27 Oktober 2023 pukul 6:30:00
+         default_args=default_args, 
+         schedule_interval='@daily', 
+         start_date=datetime(2023, 10, 30, 16, 30, 00) - timedelta(hours=7), 
          catchup=False) as dag:  
 
 
     # Task to fetch data from PostgreSQL
-    fetch_task = PythonOperator( # Ini adalah tugas yang bertanggung jawab untuk mengambil data dari PostgreSQL.
+    fetch_task = PythonOperator( 
         task_id='extract_data',
-        python_callable=extract_data # Tugas ini akan menjalankan fungsi 'extract_data' saat DAG dijalankan, yang akan mengambil data dari database PostgreSQL.
+        python_callable=extract_data 
     )
 
-    clean_task = PythonOperator( # Ini adalah tugas yang bertanggung jawab untuk membersihkan data yang telah diambil sebelumnya.
+    clean_task = PythonOperator( 
         task_id='clean_data',
         python_callable=clean_data,
     )
 
-    elasticsearch_task = PythonOperator( # Ini adalah tugas yang bertanggung jawab untuk mengirim data yang telah diambil dan dibersihkan sebelumnya ke Elasticsearch.
+    elasticsearch_task = PythonOperator( 
         task_id='send_to_elasticsearch',
         python_callable=send_to_elasticsearch,
     )
 
-# Mendefinisikan urutan ketergantungan antara tugas-tugas dalam DAG 
+
     fetch_task >> clean_task >> elasticsearch_task
 
 
